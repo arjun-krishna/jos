@@ -116,7 +116,6 @@ debuginfo_eip(uintptr_t addr, struct Eipdebuginfo *info)
 	const struct Stab *stabs, *stab_end;
 	const char *stabstr, *stabstr_end;
 	int lfile, rfile, lfun, rfun, lline, rline;
-
 	// Initialize *info
 	info->eip_file = "<unknown>";
 	info->eip_line = 0;
@@ -227,5 +226,8 @@ debuginfo_eip(uintptr_t addr, struct Eipdebuginfo *info)
 		     lline++)
 			info->eip_fn_narg++;
 
+
+	stab_binsearch(stabs, &lline, &rline, N_SLINE, addr);
+  info->eip_line = stabs[lline].n_desc;
 	return 0;
 }
