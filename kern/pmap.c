@@ -99,14 +99,15 @@ boot_alloc(uint32_t n)
 	// to a multiple of PGSIZE.
 	//
 	// LAB 2: Your code here.
-	
-	if( n != 0) {
-		char* next = nextfree;
-		nextfree = ROUNDUP((char* )(nextfree+n),PGSIZE); // allocate pages which can handle n bytes
+	cprintf("boot_alloc memory at %x\n", nextfree);
+	cprintf("Next memory at %x\n", ROUNDUP((char *) (nextfree+n), PGSIZE));
+	if (n != 0) {
+		char *next = nextfree;
+		nextfree = ROUNDUP((char *) (nextfree+n), PGSIZE);
 		return next;
-	} else {
-		return nextfree;
-	}
+	} else return nextfree;
+
+	return NULL;
 }
 
 // Set up a two-level page table:
@@ -158,6 +159,7 @@ mem_init(void)
 	//////////////////////////////////////////////////////////////////////
 	// Make 'envs' point to an array of size 'NENV' of 'struct Env'.
 	// LAB 3: Your code here.
+	envs = (struct Env*) boot_alloc(sizeof(struct Env)*NENV);
 
 	//////////////////////////////////////////////////////////////////////
 	// Now that we've allocated the initial kernel data structures, we set
@@ -190,6 +192,7 @@ mem_init(void)
 	//    - the new image at UENVS  -- kernel R, user R
 	//    - envs itself -- kernel RW, user NONE
 	// LAB 3: Your code here.
+  boot_map_region(kern_pgdir,UENVS, PTSIZE,PADDR(envs) ,PTE_U);
 
 	//////////////////////////////////////////////////////////////////////
 	// Use the physical memory that 'bootstack' refers to as the kernel
@@ -276,14 +279,13 @@ page_init(void)
 		pages[i].pp_link = page_free_list;
 		page_free_list = &pages[i];
 	}
-	int med = (int) ROUNDUP(((char*)pages) + (sizeof(struct PageInfo)* npages) - KERNBASE,PGSIZE)/PGSIZE;
-	cprintf("%d\n", ((char*)pages)+(sizeof(struct PageInfo)*npages));
-	cprintf("med=%d\n",med);
-  for(i=med; i<npages; i++) {
-  	pages[i].pp_ref = 0;
-  	pages[i].pp_link = page_free_list;
-  	page_free_list = &pages[i];
-  }
+	int med = (int)ROUNDUP(((char*)envs) + (sizeof(struct Env) * NENV) - 0xf0000000, PGSIZE)/PGSIZE;
+	cprintf("%x\n", ((char*)envs) + (sizeof(struct Env) * NENV));
+	for (i = med; i < npages; i++) {
+		pages[i].pp_ref = 0;
+		pages[i].pp_link = page_free_list;
+		page_free_list = &pages[i];
+	}
 }
 
 //
@@ -520,6 +522,7 @@ tlb_invalidate(pde_t *pgdir, void *va)
 
 static uintptr_t user_mem_check_addr;
 
+void pprint(pte_t *pte);
 //
 // Check that an environment is allowed to access the range of memory
 // [va, va+len) with permissions 'perm | PTE_P'.
@@ -542,6 +545,20 @@ int
 user_mem_check(struct Env *env, const void *va, size_t len, int perm)
 {
 	// LAB 3: Your code here.
+	pte_t *pte;
+	uint32_t addr = ROUNDDOWN((uint32_t) va, PGSIZE);
+	uint32_t end = ROUNDUP((uint32_t) va + len, PGSIZE);
+	perm |= PTE_P;
+
+	for (; addr < end; addr += PGSIZE) {
+		pte = pgdir_walk(env->env_pgdir, (void*) addr, 0); 
+		if (!pte
+	  	     || addr >= ULIM
+		     || ((*pte & perm) != perm) ) {
+			user_mem_check_addr = addr < (uint32_t) va ? (uintptr_t) va : addr;
+			return -E_FAULT;
+		}
+	}
 
 	return 0;
 }
