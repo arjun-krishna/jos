@@ -218,10 +218,10 @@ mem_init(void)
 	// Permissions: kernel RW, user NONE
 	// Your code goes here:
 	// Initialize the SMP-related parts of the memory map
+	boot_map_region(kern_pgdir, KERNBASE, -KERNBASE, 0, PTE_W);
+
 	mem_init_mp();
 
-	boot_map_region(kern_pgdir, KERNBASE, -KERNBASE, 0, PTE_W);
-	
 	// Check that the initial page directory has been set up correctly.
 	check_kern_pgdir();
 
@@ -269,7 +269,14 @@ mem_init_mp(void)
 	//     Permissions: kernel RW, user NONE
 	//
 	// LAB 4: Your code here:
-
+	int i;
+  for (i = 0; i < NCPU; ++i) {
+      boot_map_region(kern_pgdir, 
+          KSTACKTOP - KSTKSIZE - i * (KSTKSIZE + KSTKGAP), 
+          KSTKSIZE, 
+          PADDR(percpu_kstacks[i]), 
+          PTE_W);
+  }
 }
 
 // --------------------------------------------------------------
@@ -309,7 +316,7 @@ page_init(void)
 	// NB: DO NOT actually touch the physical memory corresponding to
 	// free pages!
 	size_t i;
-	for (i = 1; i < npages_basemem; i++) {
+	for (i = 1; i < MPENTRY_PADDR/PGSIZE; i++) {
 		pages[i].pp_ref = 0;
 		pages[i].pp_link = page_free_list;
 		page_free_list = &pages[i];
@@ -587,7 +594,14 @@ mmio_map_region(physaddr_t pa, size_t size)
 	// Hint: The staff solution uses boot_map_region.
 	//
 	// Your code here:
-	panic("mmio_map_region not implemented");
+	size = ROUNDUP(pa+size, PGSIZE);
+	pa = ROUNDDOWN(pa, PGSIZE);
+	size -= pa;
+	if (base+size >= MMIOLIM) panic("not enough memory");
+	boot_map_region(kern_pgdir, base, size, pa, PTE_PCD|PTE_PWT|PTE_W);
+	base += size;
+	return (void*) (base - size);
+	// panic("mmio_map_region not implemented");
 }
 
 static uintptr_t user_mem_check_addr;

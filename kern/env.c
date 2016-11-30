@@ -255,6 +255,7 @@ env_alloc(struct Env **newenv_store, envid_t parent_id)
 
 	// Enable interrupts while in user mode.
 	// LAB 4: Your code here.
+	e->env_tf.tf_eflags |= FL_IF;
 
 	// Clear the page fault handler until user installs one.
 	e->env_pgfault_upcall = 0;
@@ -321,7 +322,7 @@ region_alloc(struct Env *e, void *va, size_t len)
 //  - How might load_icode fail?  What might be wrong with the given input?
 //
 static void
-load_icode(struct Env *e, uint8_t *binary,size_t size)
+load_icode(struct Env *e, uint8_t *binary)
 {
 	// Hints:
 	//  Load each program segment into virtual memory
@@ -387,12 +388,13 @@ load_icode(struct Env *e, uint8_t *binary,size_t size)
 // The new env's parent ID is set to 0.
 //
 void
-env_create(uint8_t *binary,size_t size, enum EnvType type)
+env_create(uint8_t *binary, enum EnvType type)
 {
 	// LAB 3: Your code here.
 	struct Env * process;
 	env_alloc(&process,0);
-	load_icode(process, binary, size);
+	load_icode(process, binary);
+	process->env_type = type;
 }
 
 //
@@ -525,11 +527,15 @@ env_run(struct Env *e)
 
 	//panic("env_run not yet implemented");
 	if(curenv != e) {
+		if (curenv && curenv->env_status == ENV_RUNNING) {
+			curenv->env_status = ENV_RUNNABLE;
+		}
 		curenv = e;
 		e->env_status = ENV_RUNNING;
 		e->env_runs++;
 		lcr3(PADDR(e->env_pgdir));
 	}
+	unlock_kernel();
 	env_pop_tf(&e->env_tf);
 }
 
