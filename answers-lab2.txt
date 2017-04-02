@@ -1,0 +1,192 @@
+Exercise 3:
+-----------
+_____________________________________________________________________________________
+
+Checking some VA to PA mappings
+--------------------------------
+
+(qemu) x/10x 0xf0100000                                         % Checking VA
+f0100000: 0x1badb002 0x00000000 0xe4524ffe 0x7205c766
+f0100010: 0x34000004 0x5000b812 0x220f0011 0xc0200fd8
+f0100020: 0x0100010d 0xc0220f80
+
+(qemu) xp/10x 0x00100000                                        % Checking PA
+0000000000100000: 0x1badb002 0x00000000 0xe4524ffe 0x7205c766
+0000000000100010: 0x34000004 0x5000b812 0x220f0011 0xc0200fd8
+0000000000100020: 0x0100010d 0xc0220f80
+----------------------------------------------------------------------------------
+
+(qemu) x/10x 0xef000000                                         % Checking VA
+ef000000: 0x00000000 0x00000000 0xf01397f0 0x00000000
+ef000010: 0xf0119008 0x00000000 0xf0119010 0x00000000
+ef000020: 0xf0119018 0x00000000
+
+(qemu) xp/10x 0x00119000                                        % Checking PA
+0000000000119000: 0x00000000 0x00000000 0xf01397f0 0x00000000
+0000000000119010: 0xf0119008 0x00000000 0xf0119010 0x00000000
+0000000000119020: 0xf0119018 0x00000000
+
+-----------------------------------------------------------------------------------
+
+(qemu) x/10x 0xef7bc000                                         % Checking VA
+ef7bc000: 0x00119005 0x0011a005 0x0011b005 0x0011c005
+ef7bc010: 0x0011d005 0x0011e005 0x0011f005 0x00120005
+ef7bc020: 0x00121005 0x00122005
+
+(qemu) xp/10x 0x003fd000                                        % Checking PA
+00000000003fd000: 0x00119005 0x0011a005 0x0011b005 0x0011c005
+00000000003fd010: 0x0011d005 0x0011e005 0x0011f005 0x00120005
+00000000003fd020: 0x00121005 0x00122005
+
+_____________________________________________________________________________________
+
+info pg 
+--------
+(qemu) info pg
+VPN range       Entry         Flags        Physical page
+[ef000-ef3ff]   PDE[3bc]     -------UWP
+  [ef000-ef3ff]   PTE[000-3ff] -------U-P 00119-00518
+[ef400-ef7ff]   PDE[3bd]     -------U-P
+  [ef7bc-ef7bc]   PTE[3bc]     -------UWP 003fd
+  [ef7bd-ef7bd]   PTE[3bd]     -------U-P 00118
+  [ef7bf-ef7bf]   PTE[3bf]     -------UWP 003fe
+  [ef7c0-ef7d0]   PTE[3c0-3d0] ----A--UWP 003ff 003fc 003fb 003fa 003f9 003f8 ..
+  [ef7d1-ef7ff]   PTE[3d1-3ff] -------UWP 003ec 003eb 003ea 003e9 003e8 003e7 ..
+[efc00-effff]   PDE[3bf]     -------UWP
+  [efff8-effff]   PTE[3f8-3ff] --------WP 0010d-00114
+[f0000-f03ff]   PDE[3c0]     ----A--UWP
+  [f0000-f0000]   PTE[000]     --------WP 00000
+  [f0001-f009f]   PTE[001-09f] ---DA---WP 00001-0009f
+  [f00a0-f00b7]   PTE[0a0-0b7] --------WP 000a0-000b7
+  [f00b8-f00b8]   PTE[0b8]     ---DA---WP 000b8
+  [f00b9-f00ff]   PTE[0b9-0ff] --------WP 000b9-000ff
+  [f0100-f0107]   PTE[100-107] ----A---WP 00100-00107
+  [f0108-f0109]   PTE[108-109] --------WP 00108-00109
+  [f010a-f010c]   PTE[10a-10c] ----A---WP 0010a-0010c
+  [f010d-f0113]   PTE[10d-113] --------WP 0010d-00113
+  [f0114-f0114]   PTE[114]     ---DA---WP 00114
+  [f0115-f0115]   PTE[115]     ----A---WP 00115
+  [f0116-f0116]   PTE[116]     --------WP 00116
+  [f0117-f0118]   PTE[117-118] ---DA---WP 00117-00118
+  [f0119-f0119]   PTE[119]     ----A---WP 00119
+  [f011a-f011a]   PTE[11a]     ---DA---WP 0011a
+  [f011b-f0139]   PTE[11b-139] ----A---WP 0011b-00139
+  [f013a-f03bd]   PTE[13a-3bd] ---DA---WP 0013a-003bd
+  [f03be-f03ff]   PTE[3be-3ff] --------WP 003be-003ff
+[f0400-f3fff]   PDE[3c1-3cf] ----A--UWP
+  [f0400-f3fff]   PTE[000-3ff] ---DA---WP 00400-03fff
+[f4000-f43ff]   PDE[3d0]     ----A--UWP
+  [f4000-f40fe]   PTE[000-0fe] ---DA---WP 04000-040fe
+  [f40ff-f43ff]   PTE[0ff-3ff] --------WP 040ff-043ff
+[f4400-fffff]   PDE[3d1-3ff] -------UWP
+  [f4400-fffff]   PTE[000-3ff] --------WP 04400-0ffff
+___________________________________________________________
+
+info mem
+---------
+(qemu) info mem
+00000000ef000000-00000000ef400000 0000000000400000 ur-
+00000000ef7bc000-00000000ef7be000 0000000000002000 ur-
+00000000ef7bf000-00000000ef800000 0000000000041000 ur-
+00000000efff8000-0000000100000000 0000000010008000 -rw
+_____________________________________________________________
+
+____________________________________________________________________________________________________
+
+Question 1 : 
+------------
+
+Assuming that the following JOS kernel code is correct, what type should variable x have, uintptr_t or physaddr_t?
+  mystery_t x;
+  char* value = return_a_pointer();
+  *value = 10;
+  x = (mystery_t) value;
+
+Answer : 
+--------
+mystery_t must be uintptr_t ( Virtual Address ), as we dereferenced the value pointer to store 10, it can't be stored in type physaddr_t.
+
+____________________________________________________________________________________________________
+
+Question 2:
+-----------
+
+What entries (rows) in the page directory have been filled in at this point? What addresses do they map and where do they point? In other words, fill out this table as much as possible:
+
+Answer:
+-------
+____________________________________________________________________
+|ENTRY        | BASE VIRTUAL ADDRESS   | Points to (logically)        |
+|_____________|________________________|______________________________|
+| 956 (0x3bc) | 0xef00 0000            | Holds the Pages Array in     |
+|             |                        | Read only memory             | 
+|_____________|________________________|______________________________|
+| 957 (0x3bd) | 0xef40 0000            | Kernel Page Directory        |
+|_____________|________________________|______________________________|
+| 959 (0x3bf) | 0xefc0 0000            | Kernel Stack                 |
+|_____________|________________________|______________________________|
+| 960 (0x3c0) | 0xf000 0000            | Pages array in kernel memory |
+|_____________|________________________|______________________________|
+| 961-1023    | 0xf000 0000 to         | Physical memory map          |
+|(0x3c1-0x3ff)| 0xffff ffff            |                              |
+|_____________|________________________|______________________________|
+
+[ef000-ef3ff]   PDE[3bc]     -------UWP
+[ef400-ef7ff]   PDE[3bd]     -------U-P
+[efc00-effff]   PDE[3bf]     -------UWP
+[f0000-f03ff]   PDE[3c0]     ----A--UWP
+[f0400-f3fff]   PDE[3c1-3cf] ----A--UWP
+[f4000-f43ff]   PDE[3d0]     ----A--UWP
+[f4400-fffff]   PDE[3d1-3ff] -------UWP
+
+________________________________________________________________________________________________
+
+Question 3:
+------------
+We have placed the kernel and user environment in the same address space. Why will user programs not be able to read or write the kernel's memory? What specific mechanisms protect the kernel memory?
+
+Answer :
+--------
+The user programs run with the privilege Level 3, where as the page directories for kernel
+memory ensure that only higher privileges i.e 0 - 2 can access it, this is ensured by having 
+the PTE_U (user) but unset. So, when a user program ( CPL = 3 ) tries to access a page which
+has the PTE_U bit unset a fault will arise.
+
+__________________________________________________________________________________________________
+
+Question 4:
+------------
+What is the maximum amount of physical memory that this operating system can support? Why?
+
+Answer :
+--------
+Here the UPAGES ( user pages ) is 4MB 
+sizeof(struct PageInfo) is 8 Byte,
+so we can have atmost 4MB / 8 Byte = 512 K pages
+Each page maps 4 KB, 
+so we can access atmost 512 * 4 MB = 2GB
+
+so, we can use atmost 2GB of physical memory.
+
+____________________________________________________________________________________________________
+
+Question 5:
+------------
+How much space overhead is there for managing memory, if we actually had the maximum amount of physical memory? How is this overhead broken down?
+
+Answer :
+--------
+To handle 2^31 bytes (2 GB) of memory, we need 2^19 Pages elements ( Each element is 8 Byte).
+So we need 4MB ( 0.5* 8 MB ) of overhead to handle 2GB of memory.
+
+___________________________________________________________________________________________________
+
+Question 6:
+------------
+Revisit the page table setup in kern/entry.S and kern/entrypgdir.c. Immediately after we turn on paging, EIP is still a low number (a little over 1MB). At what point do we transition to running at an EIP above KERNBASE? What makes it possible for us to continue executing at a low EIP between when we enable paging and when we begin running at an EIP above KERNBASE? Why is this transition necessary?
+
+Answer :
+--------
+After the jump instruction, the paging is enabled but even the lower addresses [ 0 - 4M ] is 
+also mapped to physical [ 0 - 4M ] so instructions can be executed and no discontinuity occurs.
+This transition to higher EIP is necessary as at later stages the [0 - 4M ]  mapping is abandoned.
